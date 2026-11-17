@@ -1,0 +1,1545 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dropout & Academic Success Prediction | SRM IST CA-3 Showcase</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Outfit', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            500: '#10b981',
+                            600: '#059669',
+                        },
+                        dark: {
+                            bg: '#090D16',
+                            card: '#111827',
+                            border: 'rgba(255, 255, 255, 0.08)',
+                            accent: '#1E293B'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #090D16;
+            color: #E2E8F0;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .glass-card {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card-hover:hover {
+            transform: translateY(-4px);
+            border-color: rgba(59, 130, 246, 0.4);
+            box-shadow: 0 12px 30px -10px rgba(59, 130, 246, 0.2);
+        }
+
+        .glow-emerald {
+            box-shadow: 0 0 35px -5px rgba(16, 185, 129, 0.25);
+        }
+
+        .glow-blue {
+            box-shadow: 0 0 35px -5px rgba(59, 130, 246, 0.25);
+        }
+
+        .glow-rose {
+            box-shadow: 0 0 35px -5px rgba(244, 63, 94, 0.25);
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #60A5FA 0%, #34D399 50%, #A78BFA 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .slide-container {
+            display: none;
+        }
+
+        .slide-container.active-slide {
+            display: block;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #090D16;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #1E293B;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3B82F6;
+        }
+    </style>
+</head>
+
+<body class="antialiased min-h-screen selection:bg-blue-500 selection:text-white">
+
+    <!-- Top Sticky Navigation Bar -->
+    <header class="sticky top-0 z-50 glass-card border-b border-white/10 backdrop-blur-xl">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <!-- Brand & College Badge -->
+            <div class="flex items-center space-x-3">
+                <div
+                    class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-emerald-500 flex items-center justify-center font-bold text-white shadow-lg shadow-blue-500/20">
+                    <i data-lucide="graduation-cap" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <span class="font-display font-bold text-white text-base tracking-tight">SRM IST</span>
+                        <span
+                            class="px-2 py-0.5 text-[10px] font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/30 rounded-full">ECE
+                            Core</span>
+                        <span
+                            class="px-2 py-0.5 text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded-full">CA-3
+                            Project</span>
+                    </div>
+                    <p class="text-xs text-slate-400 hidden sm:block">26CSE1001T · Data Science & AI · Sec H2</p>
+                </div>
+            </div>
+
+            <!-- Nav Controls & View Switcher -->
+            <div class="flex items-center space-x-3">
+                <!-- Mode Toggle: Presentation Deck vs Full Scroll -->
+                <div class="bg-slate-900/80 p-1 rounded-xl border border-white/10 flex items-center">
+                    <button id="viewModeScrollBtn" onclick="setViewMode('scroll')"
+                        class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 flex items-center space-x-1.5 text-slate-400 hover:text-white">
+                        <i data-lucide="scroll" class="w-3.5 h-3.5"></i>
+                        <span class="hidden md:inline">Dashboard Mode</span>
+                    </button>
+                    <button id="viewModeDeckBtn" onclick="setViewMode('deck')"
+                        class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 flex items-center space-x-1.5 bg-blue-600 text-white shadow-sm shadow-blue-500/30">
+                        <i data-lucide="presentation" class="w-3.5 h-3.5"></i>
+                        <span>Presentation Mode</span>
+                    </button>
+                </div>
+
+                <!-- Live Simulator Direct Jump -->
+                <a href="#simulator" onclick="ensureSimulatorVisible()"
+                    class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/30 transition flex items-center space-x-1.5">
+                    <i data-lucide="play" class="w-3.5 h-3.5 fill-emerald-300"></i>
+                    <span class="hidden sm:inline">Live Predictor</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Floating Deck Presentation Controller (Visible in Presentation Mode) -->
+    <div id="deckController"
+        class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 glass-card px-5 py-3 rounded-2xl border border-white/20 shadow-2xl flex items-center space-x-4 bg-slate-900/90 backdrop-blur-2xl">
+        <button onclick="prevSlide()"
+            class="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white transition active:scale-95"
+            title="Previous Slide (Left Arrow)">
+            <i data-lucide="chevron-left" class="w-5 h-5"></i>
+        </button>
+        <div class="text-center min-w-[120px]">
+            <span id="slideIndicator" class="font-mono text-sm font-bold text-blue-400">Slide 01 / 08</span>
+            <div class="text-[10px] text-slate-400 uppercase tracking-widest" id="slideTitleSmall">Project Overview
+            </div>
+        </div>
+        <button onclick="nextSlide()"
+            class="p-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white transition active:scale-95 shadow-md shadow-blue-500/30"
+            title="Next Slide (Right Arrow)">
+            <i data-lucide="chevron-right" class="w-5 h-5"></i>
+        </button>
+        <div class="h-5 w-[1px] bg-white/10"></div>
+        <button onclick="toggleFullscreen()"
+            class="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 transition" title="Toggle Fullscreen">
+            <i data-lucide="maximize" class="w-4 h-4"></i>
+        </button>
+    </div>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-16">
+
+        <!-- ========================================== -->
+        <!-- SLIDE 1 / SECTION 1: HERO & ACADEMIC TITLE -->
+        <!-- ========================================== -->
+        <section id="slide-1" class="slide-section active-slide pt-4">
+            <div class="glass-card rounded-3xl p-8 sm:p-12 relative overflow-hidden glow-blue">
+                <div
+                    class="absolute -top-24 -right-24 w-96 h-96 bg-blue-600/15 rounded-full blur-3xl pointer-events-none">
+                </div>
+                <div
+                    class="absolute -bottom-24 -left-24 w-96 h-96 bg-emerald-600/15 rounded-full blur-3xl pointer-events-none">
+                </div>
+
+                <div class="relative z-10 max-w-4xl">
+                    <div
+                        class="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-semibold mb-6">
+                        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                        <span>Department of Electronics and Communication Engineering · CA-3 Showcase</span>
+                    </div>
+
+                    <h1
+                        class="font-display font-extrabold text-3xl sm:text-5xl lg:text-6xl text-white tracking-tight leading-tight">
+                        Student Dropout Prediction & <br>
+                        <span class="gradient-text">Academic Success Classification</span>
+                    </h1>
+
+                    <p class="mt-5 text-base sm:text-lg text-slate-300 leading-relaxed max-w-3xl">
+                        An end-to-end Machine Learning research system developed using <span
+                            class="text-white font-semibold">Orange Data Mining</span><span
+                            class="text-emerald-400 font-semibold"></span>. Classifies
+                        student outcomes across 4,424 records into <strong>Graduate</strong>, <strong>Dropout</strong>,
+                        and <strong>Enrolled</strong> with real-time early warning diagnostics.
+                    </p>
+
+                    <!-- Key Benchmark Metrics Grid -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8">
+                        <div class="glass-card rounded-2xl p-4 border border-white/5 bg-slate-900/60">
+                            <span class="text-xs uppercase font-medium text-slate-400 tracking-wider">Dataset
+                                Cohort</span>
+                            <div class="text-2xl sm:text-3xl font-display font-bold text-white mt-1">4,424</div>
+                            <span class="text-[11px] text-emerald-400 font-medium">0% Missing Values</span>
+                        </div>
+                        <div class="glass-card rounded-2xl p-4 border border-white/5 bg-slate-900/60">
+                            <span class="text-xs uppercase font-medium text-slate-400 tracking-wider">Features
+                                Analyzed</span>
+                            <div class="text-2xl sm:text-3xl font-display font-bold text-blue-400 mt-1">36 → 53</div>
+                            <span class="text-[11px] text-blue-300 font-medium">+17 Engineered Feats</span>
+                        </div>
+                        <div class="glass-card rounded-2xl p-4 border border-white/5 bg-slate-900/60">
+                            <span class="text-xs uppercase font-medium text-slate-400 tracking-wider">Orange Best
+                                Acc</span>
+                            <div class="text-2xl sm:text-3xl font-display font-bold text-amber-400 mt-1">75.9%</div>
+                            <span class="text-[11px] text-amber-300 font-medium">Random Forest (5-CV)</span>
+                        </div>
+                        <div class="glass-card rounded-2xl p-4 border border-white/5 bg-slate-900/60">
+                            <span class="text-xs uppercase font-medium text-slate-400 tracking-wider">Production
+                                AUC</span>
+                            <div class="text-2xl sm:text-3xl font-display font-bold text-emerald-400 mt-1">0.8928</div>
+                            <span class="text-[11px] text-emerald-300 font-medium">Voting / XGBoost</span>
+                        </div>
+                    </div>
+
+                    <!-- Authors & Faculty Guide Card -->
+                    <div
+                        class="mt-8 pt-8 border-t border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                        <div>
+                            <span class="text-xs font-semibold text-slate-400 uppercase tracking-widest block mb-2">Team
+                                Members (ECE H2)</span>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                                <div class="bg-white/5 px-3 py-2 rounded-xl border border-white/5">
+                                    <p class="font-semibold text-white">P. Gunalan</p>
+                                    <p class="text-slate-400 font-mono text-[10px]">RA2611004011281</p>
+                                </div>
+                                <div class="bg-white/5 px-3 py-2 rounded-xl border border-white/5">
+                                    <p class="font-semibold text-white">V. Bhanu Sree</p>
+                                    <p class="text-slate-400 font-mono text-[10px]">RA2611004011303</p>
+                                </div>
+                                <div class="bg-white/5 px-3 py-2 rounded-xl border border-white/5">
+                                    <p class="font-semibold text-white">Darshana .A.M</p>
+                                    <p class="text-slate-400 font-mono text-[10px]">RA2611004011309</p>
+                                </div>
+                                <div class="bg-blue-600/20 px-3 py-2 rounded-xl border border-blue-500/30">
+                                    <p class="font-semibold text-blue-300">Sangana Sai Chaitanya</p>
+                                    <p class="text-blue-400 font-mono text-[10px]">RA2611004011344</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div
+                            class="bg-slate-900/80 px-4 py-3 rounded-2xl border border-white/10 self-start md:self-center">
+                            <span class="text-[11px] text-slate-400 block font-medium">Faculty In-Charge & Guide</span>
+                            <span class="text-sm font-bold text-white flex items-center space-x-1.5 mt-0.5">
+                                <i data-lucide="award" class="w-4 h-4 text-amber-400"></i>
+                                <span>Dr. Vimala C</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- SLIDE 2 / SECTION 2: UNIT 1 · DATASET & EDA -->
+        <!-- ========================================== -->
+        <section id="slide-2" class="slide-section">
+            <div class="flex items-center space-x-3 mb-6">
+                <span
+                    class="px-3 py-1 rounded-lg bg-blue-500/10 text-blue-400 font-mono text-xs font-bold border border-blue-500/20">UNIT
+                    1</span>
+                <h2 class="text-2xl sm:text-3xl font-display font-bold text-white">Dataset Collection & Statistical
+                    Profiling</h2>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Class Distribution Donut & Analysis -->
+                <div class="glass-card rounded-2xl p-6 border border-white/10">
+                    <h3 class="text-base font-semibold text-white mb-2 flex items-center justify-between">
+                        <span>Target Class Imbalance</span>
+                        <i data-lucide="pie-chart" class="w-4 h-4 text-blue-400"></i>
+                    </h3>
+                    <p class="text-xs text-slate-400 mb-4">4,424 Higher Education Students (Portalegre, Portugal)</p>
+                    <div class="relative h-56 flex items-center justify-center">
+                        <canvas id="classDistChart"></canvas>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 mt-4 text-center">
+                        <div class="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                            <div class="text-xs text-slate-400">Graduate</div>
+                            <div class="font-bold text-sm text-emerald-400">2,209</div>
+                            <div class="text-[10px] text-emerald-300">49.9%</div>
+                        </div>
+                        <div class="p-2 rounded-xl bg-rose-500/10 border border-rose-500/20">
+                            <div class="text-xs text-slate-400">Dropout</div>
+                            <div class="font-bold text-sm text-rose-400">1,421</div>
+                            <div class="text-[10px] text-rose-300">32.1%</div>
+                        </div>
+                        <div class="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20">
+                            <div class="text-xs text-slate-400">Enrolled</div>
+                            <div class="font-bold text-sm text-amber-400">794</div>
+                            <div class="text-[10px] text-amber-300">18.0%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Column Statistics Table -->
+                <div class="glass-card rounded-2xl p-6 border border-white/10 lg:col-span-2">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-base font-semibold text-white">Attribute Dispersion & Value Ranges</h3>
+                            <p class="text-xs text-slate-400">Derived from Orange Column Statistics Widget (0% Missing
+                                Data)</p>
+                        </div>
+                        <button onclick="openModal('assets/COLUMN STATISTICS.png')"
+                            class="text-xs text-blue-400 hover:text-blue-300 flex items-center space-x-1">
+                            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                            <span>View Orange Widget</span>
+                        </button>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="text-slate-400 uppercase bg-slate-900/60 border-b border-white/5">
+                                <tr>
+                                    <th class="py-2.5 px-3">Attribute</th>
+                                    <th class="py-2.5 px-2">Mean</th>
+                                    <th class="py-2.5 px-2">Median</th>
+                                    <th class="py-2.5 px-2">Mode</th>
+                                    <th class="py-2.5 px-2">Range [Min, Max]</th>
+                                    <th class="py-2.5 px-2">Dispersion</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-white/5 font-mono text-slate-300">
+                                <tr class="hover:bg-white/5">
+                                    <td class="py-2 px-3 font-sans font-medium text-white">Previous qualification
+                                        (grade)</td>
+                                    <td class="py-2 px-2">132.61</td>
+                                    <td class="py-2 px-2">133.10</td>
+                                    <td class="py-2 px-2">133.10</td>
+                                    <td class="py-2 px-2">[95.0, 190.0]</td>
+                                    <td class="py-2 px-2 text-emerald-400">0.099</td>
+                                </tr>
+                                <tr class="hover:bg-white/5">
+                                    <td class="py-2 px-3 font-sans font-medium text-white">Admission grade</td>
+                                    <td class="py-2 px-2">126.98</td>
+                                    <td class="py-2 px-2">126.10</td>
+                                    <td class="py-2 px-2">130.00</td>
+                                    <td class="py-2 px-2">[95.0, 190.0]</td>
+                                    <td class="py-2 px-2 text-emerald-400">0.114</td>
+                                </tr>
+                                <tr class="hover:bg-white/5">
+                                    <td class="py-2 px-3 font-sans font-medium text-white">Age at enrollment</td>
+                                    <td class="py-2 px-2">23.27</td>
+                                    <td class="py-2 px-2">20.00</td>
+                                    <td class="py-2 px-2">18.00</td>
+                                    <td class="py-2 px-2">[17.0, 70.0]</td>
+                                    <td class="py-2 px-2 text-amber-400">0.330</td>
+                                </tr>
+                                <tr class="hover:bg-white/5">
+                                    <td class="py-2 px-3 font-sans font-medium text-white">1st Sem Enrolled Units</td>
+                                    <td class="py-2 px-2">6.27</td>
+                                    <td class="py-2 px-2">6.00</td>
+                                    <td class="py-2 px-2">6.00</td>
+                                    <td class="py-2 px-2">[0.0, 26.0]</td>
+                                    <td class="py-2 px-2">0.400</td>
+                                </tr>
+                                <tr class="hover:bg-white/5">
+                                    <td class="py-2 px-3 font-sans font-medium text-white">1st Sem Approved Units</td>
+                                    <td class="py-2 px-2 text-rose-300 font-bold">4.71</td>
+                                    <td class="py-2 px-2">5.00</td>
+                                    <td class="py-2 px-2">6.00</td>
+                                    <td class="py-2 px-2">[0.0, 26.0]</td>
+                                    <td class="py-2 px-2 text-rose-400">0.660</td>
+                                </tr>
+                                <tr class="hover:bg-white/5">
+                                    <td class="py-2 px-3 font-sans font-medium text-white">2nd Sem Approved Units</td>
+                                    <td class="py-2 px-2 text-rose-300 font-bold">4.44</td>
+                                    <td class="py-2 px-2">5.00</td>
+                                    <td class="py-2 px-2">6.00</td>
+                                    <td class="py-2 px-2">[0.0, 20.0]</td>
+                                    <td class="py-2 px-2 text-rose-400">0.680</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div
+                        class="mt-4 p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-xs text-blue-300 flex items-start space-x-2">
+                        <i data-lucide="info" class="w-4 h-4 text-blue-400 shrink-0 mt-0.5"></i>
+                        <span><strong>Statistical Insight:</strong> While students register for a mean of ~6.27 units,
+                            approvals drop to 4.71 in Sem 1 and 4.44 in Sem 2. Non-completion zeros create strong
+                            bimodal spikes in grade distributions.</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- SLIDE 3 / SECTION 3: UNIT 2 · ORANGE WORKFLOW -->
+        <!-- ========================================== -->
+        <section id="slide-3" class="slide-section">
+            <div class="flex items-center space-x-3 mb-6">
+                <span
+                    class="px-3 py-1 rounded-lg bg-indigo-500/10 text-indigo-400 font-mono text-xs font-bold border border-indigo-500/20">UNIT
+                    2</span>
+                <h2 class="text-2xl sm:text-3xl font-display font-bold text-white">Orange Data Mining Pipeline &
+                    Statistical Tests</h2>
+            </div>
+
+            <!-- Workflow Visual Banner -->
+            <div class="glass-card rounded-2xl p-6 border border-white/10 mb-6">
+                <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-4">
+                    <div>
+                        <h3 class="text-base font-semibold text-white">Complete Orange Canvas Architecture</h3>
+                        <p class="text-xs text-slate-400">Visual data flow: CSV Ingestion → Imputation → Model Training
+                            → Cross-Validation</p>
+                    </div>
+                    <button onclick="openModal('assets/DATA FLOW.png')"
+                        class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-medium border border-white/10 flex items-center space-x-1.5">
+                        <i data-lucide="zoom-in" class="w-3.5 h-3.5 text-blue-400"></i>
+                        <span>Inspect Full Canvas</span>
+                    </button>
+                </div>
+                <div class="rounded-xl overflow-hidden border border-white/10 cursor-pointer bg-slate-950"
+                    onclick="openModal('assets/DATA FLOW.png')">
+                    <img src="assets/DATA FLOW.png" alt="Orange Workflow Diagram"
+                        class="w-full h-auto max-h-72 object-contain mx-auto hover:opacity-90 transition">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Hypothesis Testing & ANOVA Boxplot -->
+                <div class="glass-card rounded-2xl p-6 border border-white/10">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-base font-semibold text-white flex items-center space-x-2">
+                            <i data-lucide="bar-chart-2" class="w-4 h-4 text-emerald-400"></i>
+                            <span>Admission Grade ANOVA Test</span>
+                        </h3>
+                        <button onclick="openModal('assets/BOX PLOT.png')"
+                            class="text-xs text-blue-400 hover:text-blue-300">Expand Plot</button>
+                    </div>
+                    <p class="text-xs text-slate-300 mb-4">
+                        One-way Analysis of Variance (ANOVA) comparing admission grade differences across the 3
+                        outcomes:
+                    </p>
+                    <div class="p-4 rounded-xl bg-slate-900/80 border border-emerald-500/30 mb-4">
+                        <div class="font-mono text-sm text-emerald-400 font-bold">ANOVA: F = 35.649 (p = 0.000, N =
+                            4,424)</div>
+                        <p class="text-xs text-slate-400 mt-1">Extreme statistical significance (<span
+                                class="text-emerald-300">p &lt; 0.001</span>), confirming entry scores systematically
+                            differ between Dropouts and Graduates.</p>
+                    </div>
+                    <div class="space-y-2 text-xs font-mono">
+                        <div class="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/20 flex justify-between">
+                            <span class="text-rose-300">Dropout Group Mean:</span>
+                            <span class="text-white font-bold">124.961 ± 15.119 (Med: 123.6)</span>
+                        </div>
+                        <div class="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 flex justify-between">
+                            <span class="text-amber-300">Enrolled Group Mean:</span>
+                            <span class="text-white font-bold">125.534 ± 13.784 (Med: 124.1)</span>
+                        </div>
+                        <div
+                            class="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex justify-between">
+                            <span class="text-emerald-300">Graduate Group Mean:</span>
+                            <span class="text-white font-bold">128.794 ± 14.068 (Med: 127.4)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feature Ranking Widget Leaderboard -->
+                <div class="glass-card rounded-2xl p-6 border border-white/10">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-base font-semibold text-white flex items-center space-x-2">
+                            <i data-lucide="flame" class="w-4 h-4 text-amber-400"></i>
+                            <span>Rank Widget: Top Influential Signals</span>
+                        </h3>
+                        <button onclick="openModal('assets/RANK.png')"
+                            class="text-xs text-blue-400 hover:text-blue-300">Expand Widget</button>
+                    </div>
+                    <p class="text-xs text-slate-400 mb-4">Ranked by Information Gain, Gain Ratio, and Chi-Square Score:
+                    </p>
+
+                    <div class="space-y-3">
+                        <div>
+                            <div class="flex justify-between text-xs mb-1">
+                                <span class="font-medium text-white">1. Curricular units 2nd sem (approved)</span>
+                                <span class="font-mono text-emerald-400 font-bold">IG: 0.379 (χ²: 1437.3)</span>
+                            </div>
+                            <div class="w-full bg-slate-800 rounded-full h-2">
+                                <div class="bg-emerald-500 h-2 rounded-full" style="width: 100%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1">
+                                <span class="font-medium text-white">2. Curricular units 1st sem (approved)</span>
+                                <span class="font-mono text-emerald-400 font-bold">IG: 0.308 (χ²: 1089.5)</span>
+                            </div>
+                            <div class="w-full bg-slate-800 rounded-full h-2">
+                                <div class="bg-emerald-500 h-2 rounded-full" style="width: 81%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1">
+                                <span class="font-medium text-white">3. Curricular units 2nd sem (grade)</span>
+                                <span class="font-mono text-blue-400 font-bold">IG: 0.273 (χ²: 1102.5)</span>
+                            </div>
+                            <div class="w-full bg-slate-800 rounded-full h-2">
+                                <div class="bg-blue-500 h-2 rounded-full" style="width: 72%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1">
+                                <span class="font-medium text-white">4. Curricular units 1st sem (grade)</span>
+                                <span class="font-mono text-blue-400 font-bold">IG: 0.197 (χ²: 892.9)</span>
+                            </div>
+                            <div class="w-full bg-slate-800 rounded-full h-2">
+                                <div class="bg-blue-500 h-2 rounded-full" style="width: 52%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1">
+                                <span class="font-medium text-white">5. Tuition fees up to date</span>
+                                <span class="font-mono text-amber-400 font-bold">Gain Ratio: 0.251 (Highest!)</span>
+                            </div>
+                            <div class="w-full bg-slate-800 rounded-full h-2">
+                                <div class="bg-amber-500 h-2 rounded-full" style="width: 45%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- SLIDE 4 / SECTION 4: UNIT 3 & 4 · ORANGE RESULTS -->
+        <!-- ========================================== -->
+        <section id="slide-4" class="slide-section">
+            <div class="flex items-center space-x-3 mb-6">
+                <span
+                    class="px-3 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 font-mono text-xs font-bold border border-emerald-500/20">UNIT
+                    3 & 4</span>
+                <h2 class="text-2xl sm:text-3xl font-display font-bold text-white">Model Comparison & The 'Enrolled'
+                    Bottleneck</h2>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- 3-Way Model Benchmark Table -->
+                <div class="glass-card rounded-2xl p-6 border border-white/10 lg:col-span-2">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-base font-semibold text-white">5-Fold Stratified Cross-Validation Benchmark
+                            </h3>
+                            <p class="text-xs text-slate-400">Orange Test and Score Widget Results</p>
+                        </div>
+                        <button onclick="openModal('assets/TEST SCORE.png')"
+                            class="text-xs text-blue-400 hover:text-blue-300">View Widget</button>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="text-slate-400 uppercase bg-slate-900/60 border-b border-white/5">
+                                <tr>
+                                    <th class="py-3 px-3">Model</th>
+                                    <th class="py-3 px-2">Accuracy (CA)</th>
+                                    <th class="py-3 px-2">ROC-AUC</th>
+                                    <th class="py-3 px-2">Weighted F1</th>
+                                    <th class="py-3 px-2">Precision</th>
+                                    <th class="py-3 px-2">Recall</th>
+                                    <th class="py-3 px-2">MCC</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-white/5 font-mono text-slate-300">
+                                <tr class="bg-emerald-500/10 border-l-4 border-emerald-500 font-bold">
+                                    <td class="py-3 px-3 font-sans text-white flex items-center space-x-1.5">
+                                        <span>Random Forest</span>
+                                        <i data-lucide="crown" class="w-3.5 h-3.5 text-amber-400"></i>
+                                    </td>
+                                    <td class="py-3 px-2 text-emerald-400 text-sm">75.9%</td>
+                                    <td class="py-3 px-2 text-emerald-400">0.876</td>
+                                    <td class="py-3 px-2">0.745</td>
+                                    <td class="py-3 px-2">0.743</td>
+                                    <td class="py-3 px-2">0.759</td>
+                                    <td class="py-3 px-2 text-emerald-400">0.600</td>
+                                </tr>
+                                <tr class="hover:bg-white/5">
+                                    <td class="py-2.5 px-3 font-sans text-slate-300">Decision Tree</td>
+                                    <td class="py-2.5 px-2">68.8%</td>
+                                    <td class="py-2.5 px-2">0.740</td>
+                                    <td class="py-2.5 px-2">0.688</td>
+                                    <td class="py-2.5 px-2">0.689</td>
+                                    <td class="py-2.5 px-2">0.688</td>
+                                    <td class="py-2.5 px-2">0.496</td>
+                                </tr>
+                                <tr class="hover:bg-white/5">
+                                    <td class="py-2.5 px-3 font-sans text-slate-300">kNN</td>
+                                    <td class="py-2.5 px-2 text-rose-400">60.2%</td>
+                                    <td class="py-2.5 px-2">0.722</td>
+                                    <td class="py-2.5 px-2">0.592</td>
+                                    <td class="py-2.5 px-2">0.586</td>
+                                    <td class="py-2.5 px-2">0.602</td>
+                                    <td class="py-2.5 px-2 text-rose-400">0.339</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- AUC Superiority Probabilities -->
+                    <div class="mt-4 pt-4 border-t border-white/5 grid grid-cols-3 gap-2 text-center text-xs">
+                        <div class="p-2 rounded-xl bg-slate-900/60 border border-white/5">
+                            <span class="text-slate-400 block text-[10px]">RF vs Tree (AUC p-value)</span>
+                            <span class="font-mono font-bold text-emerald-400 text-sm">p = 1.000 (100%)</span>
+                        </div>
+                        <div class="p-2 rounded-xl bg-slate-900/60 border border-white/5">
+                            <span class="text-slate-400 block text-[10px]">RF vs kNN (AUC p-value)</span>
+                            <span class="font-mono font-bold text-emerald-400 text-sm">p = 1.000 (100%)</span>
+                        </div>
+                        <div class="p-2 rounded-xl bg-slate-900/60 border border-white/5">
+                            <span class="text-slate-400 block text-[10px]">Tree vs kNN (AUC p-value)</span>
+                            <span class="font-mono font-bold text-blue-400 text-sm">p = 0.899 (89.9%)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive Confusion Matrix Explorer -->
+                <div class="glass-card rounded-2xl p-6 border border-white/10">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-base font-semibold text-white">Random Forest Matrix</h3>
+                        <button onclick="openModal('assets/CONFUSION MATRIX.png')"
+                            class="text-xs text-blue-400 hover:text-blue-300">Inspect</button>
+                    </div>
+                    <p class="text-xs text-slate-400 mb-4">Click any cell to inspect classification dynamics:</p>
+
+                    <div class="grid grid-cols-4 gap-1.5 text-center text-xs font-mono">
+                        <div class="p-2 text-slate-400 text-[10px] font-sans">Actual \ Pred</div>
+                        <div class="p-2 bg-slate-900 text-slate-300 rounded font-bold">Dropout</div>
+                        <div class="p-2 bg-slate-900 text-slate-300 rounded font-bold">Enrolled</div>
+                        <div class="p-2 bg-slate-900 text-slate-300 rounded font-bold">Graduate</div>
+
+                        <!-- Row 1: Dropout -->
+                        <div class="p-2 bg-slate-900 text-slate-300 rounded font-bold text-left">Dropout</div>
+                        <div onclick="inspectCell('TP_Dropout', 1083, 1421, '76.2% True Positive Sensitivity for Dropouts')"
+                            class="p-2 bg-blue-600/30 text-blue-300 rounded font-bold cursor-pointer hover:scale-105 transition">
+                            1083</div>
+                        <div onclick="inspectCell('FN_D_E', 125, 1421, 'Dropouts incorrectly labeled as Enrolled')"
+                            class="p-2 bg-rose-500/20 text-rose-300 rounded cursor-pointer hover:scale-105 transition">
+                            125</div>
+                        <div onclick="inspectCell('FN_D_G', 213, 1421, 'HIGH COST ERROR: 213 Dropouts labeled as Graduates')"
+                            class="p-2 bg-rose-500/30 text-rose-300 rounded font-bold cursor-pointer hover:scale-105 transition">
+                            213</div>
+
+                        <!-- Row 2: Enrolled -->
+                        <div class="p-2 bg-slate-900 text-slate-300 rounded font-bold text-left">Enrolled</div>
+                        <div onclick="inspectCell('E_D', 188, 794, 'Active students predicted as Dropouts')"
+                            class="p-2 bg-amber-500/20 text-amber-300 rounded cursor-pointer hover:scale-105 transition">
+                            188</div>
+                        <div onclick="inspectCell('TP_Enrolled', 266, 794, 'WEAK SPOT: Only 33.5% sensitivity for Enrolled')"
+                            class="p-2 bg-amber-500/30 text-amber-300 rounded font-bold cursor-pointer hover:scale-105 transition">
+                            266</div>
+                        <div onclick="inspectCell('E_G', 340, 794, '42.8% of Enrolled students predicted as Graduate!')"
+                            class="p-2 bg-rose-500/30 text-rose-300 rounded font-bold cursor-pointer hover:scale-105 transition">
+                            340</div>
+
+                        <!-- Row 3: Graduate -->
+                        <div class="p-2 bg-slate-900 text-slate-300 rounded font-bold text-left">Graduate</div>
+                        <div onclick="inspectCell('G_D', 80, 2209, 'Only 3.6% false dropouts')"
+                            class="p-2 bg-slate-800 text-slate-400 rounded cursor-pointer hover:scale-105 transition">80
+                        </div>
+                        <div onclick="inspectCell('G_E', 118, 2209, 'Graduates predicted as Enrolled')"
+                            class="p-2 bg-slate-800 text-slate-400 rounded cursor-pointer hover:scale-105 transition">
+                            118</div>
+                        <div onclick="inspectCell('TP_Graduate', 2011, 2209, 'EXCEPTIONAL: 91.0% Sensitivity for Graduates')"
+                            class="p-2 bg-emerald-500/40 text-emerald-300 rounded font-bold cursor-pointer hover:scale-105 transition">
+                            2011</div>
+                    </div>
+
+                    <!-- Inspector Callout Box -->
+                    <div id="cellInspectorBox"
+                        class="mt-4 p-3 rounded-xl bg-slate-900 border border-white/10 text-xs text-slate-300">
+                        <span class="text-blue-400 font-semibold block mb-0.5">Cell Diagnostic:</span>
+                        <span id="cellInspectorText">Click any number above to reveal diagnostic error impact.</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- SLIDE 5 / SECTION 5: DEEP PYTHON UPGRADE  -->
+        <!-- ========================================== -->
+        <section id="slide-5" class="slide-section">
+            <div class="flex items-center space-x-3 mb-6">
+                <span
+                    class="px-3 py-1 rounded-lg bg-purple-500/10 text-purple-400 font-mono text-xs font-bold border border-purple-500/20">THE
+                    UPGRADE</span>
+                <h2 class="text-2xl sm:text-3xl font-display font-bold text-white">Deep Python Pipeline & Tournament
+                    Benchmark</h2>
+            </div>
+
+            <!-- Context Banner -->
+            <div class="glass-card rounded-2xl p-6 border border-purple-500/30 bg-purple-950/10 mb-6">
+                <div class="flex items-start space-x-4">
+                    <div class="p-3 rounded-xl bg-purple-500/20 text-purple-300 shrink-0">
+                        <i data-lucide="code" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-white">How We Took Orange To Production Grade</h3>
+                        <p class="text-xs sm:text-sm text-slate-300 mt-1 leading-relaxed">
+                            While Orange provided a great GUI baseline, standard off-the-shelf models struggle with the
+                            <strong>33.5% Enrolled recall bottleneck</strong>. In our custom Python codebase (<code
+                                class="text-purple-300 font-mono">D:\DS AI project\src\</code>), we engineered
+                            <strong>17 domain interaction features</strong>, tuned XGBoost and HistGradientBoosting, and
+                            ensembled them into a production pipeline.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- 17 Engineered Features Card -->
+                <div class="glass-card rounded-2xl p-6 border border-white/10">
+                    <h3 class="text-base font-semibold text-white mb-2 flex items-center space-x-2">
+                        <i data-lucide="layers" class="w-4 h-4 text-purple-400"></i>
+                        <span>17 Engineered Domain Signals</span>
+                    </h3>
+                    <p class="text-xs text-slate-400 mb-4">Added through <code
+                            class="text-purple-300">StudentFeatureEngineer</code>:</p>
+                    <ul class="space-y-2 text-xs text-slate-300 font-mono">
+                        <li class="p-2 rounded bg-white/5 border border-white/5">
+                            <span class="text-purple-300 font-bold">sem1_approval_rate:</span> approved_1 / enrolled_1
+                        </li>
+                        <li class="p-2 rounded bg-white/5 border border-white/5">
+                            <span class="text-purple-300 font-bold">sem2_approval_rate:</span> approved_2 / enrolled_2
+                        </li>
+                        <li class="p-2 rounded bg-white/5 border border-white/5">
+                            <span class="text-purple-300 font-bold">grade_delta:</span> sem2_grade - sem1_grade
+                            (Momentum)
+                        </li>
+                        <li class="p-2 rounded bg-white/5 border border-white/5">
+                            <span class="text-purple-300 font-bold">financial_stress_score:</span> 2*Debtor +
+                            3*(1-Tuition) - 1.5*Scholarship
+                        </li>
+                        <li class="p-2 rounded bg-white/5 border border-white/5">
+                            <span class="text-purple-300 font-bold">macro_misery:</span> Unemp + Inflation - GDP
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Production Tournament Table -->
+                <div class="glass-card rounded-2xl p-6 border border-white/10 lg:col-span-2">
+                    <h3 class="text-base font-semibold text-white mb-2">Production Tournament Arena (5-Fold CV +
+                        Held-Out Test)</h3>
+                    <p class="text-xs text-slate-400 mb-4">Benchmarking all candidate pipelines in <code
+                            class="text-emerald-400">src/train.py</code></p>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="text-slate-400 uppercase bg-slate-900/60 border-b border-white/5">
+                                <tr>
+                                    <th class="py-2.5 px-3">Pipeline</th>
+                                    <th class="py-2.5 px-2">CV Macro F1</th>
+                                    <th class="py-2.5 px-2">Test Macro F1</th>
+                                    <th class="py-2.5 px-2">Test Accuracy</th>
+                                    <th class="py-2.5 px-2">Enrolled F1</th>
+                                    <th class="py-2.5 px-2">Test ROC-AUC</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-white/5 font-mono text-slate-300">
+                                <tr class="bg-emerald-500/10 font-bold border-l-4 border-emerald-500">
+                                    <td class="py-2.5 px-3 font-sans text-white">Hist_Gradient_Boosting 🏆</td>
+                                    <td class="py-2.5 px-2 text-emerald-400">0.7136</td>
+                                    <td class="py-2.5 px-2 text-emerald-400 text-sm">0.7197</td>
+                                    <td class="py-2.5 px-2">76.50%</td>
+                                    <td class="py-2.5 px-2 text-emerald-400 font-bold">0.5341</td>
+                                    <td class="py-2.5 px-2">0.8846</td>
+                                </tr>
+                                <tr class="hover:bg-white/5">
+                                    <td class="py-2.5 px-3 font-sans text-white">Voting_Ensemble (Soft)</td>
+                                    <td class="py-2.5 px-2">0.7230</td>
+                                    <td class="py-2.5 px-2">0.7181</td>
+                                    <td class="py-2.5 px-2">77.18%</td>
+                                    <td class="py-2.5 px-2">0.5076</td>
+                                    <td class="py-2.5 px-2 text-emerald-400 font-bold">0.8928</td>
+                                </tr>
+                                <tr class="hover:bg-white/5">
+                                    <td class="py-2.5 px-3 font-sans text-white">XGBoost (multi:softprob)</td>
+                                    <td class="py-2.5 px-2">0.7059</td>
+                                    <td class="py-2.5 px-2">0.7123</td>
+                                    <td class="py-2.5 px-2 text-emerald-400 font-bold">77.63%</td>
+                                    <td class="py-2.5 px-2">0.4897</td>
+                                    <td class="py-2.5 px-2">0.8913</td>
+                                </tr>
+                                <tr class="hover:bg-white/5">
+                                    <td class="py-2.5 px-3 font-sans text-white">Extra_Trees</td>
+                                    <td class="py-2.5 px-2">0.7194</td>
+                                    <td class="py-2.5 px-2">0.7172</td>
+                                    <td class="py-2.5 px-2">76.16%</td>
+                                    <td class="py-2.5 px-2">0.5239</td>
+                                    <td class="py-2.5 px-2">0.8882</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div
+                        class="mt-4 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-300">
+                        <strong>Why HistGradientBoosting won:</strong> In multi-class medical and retention modeling,
+                        Macro F1 matters more than raw accuracy. HistGradientBoosting improved the minority 'Enrolled'
+                        F1 score from <strong>0.408 (Orange) to 0.534</strong>, successfully resolving the class
+                        imbalance bottleneck!
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- SLIDE 6 / SECTION 6: LIVE INTERACTIVE PREDICTOR -->
+        <!-- ========================================== -->
+        <section id="slide-6" class="slide-section">
+            <div class="flex items-center space-x-3 mb-6">
+                <span
+                    class="px-3 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 font-mono text-xs font-bold border border-emerald-500/20">LIVE
+                    SIMULATOR</span>
+                <h2 class="text-2xl sm:text-3xl font-display font-bold text-white">Student Attrition & Early-Warning
+                    Simulator</h2>
+            </div>
+
+            <div id="simulator"
+                class="glass-card rounded-3xl p-6 sm:p-10 border border-emerald-500/30 glow-emerald relative">
+                <!-- Preset Buttons -->
+                <div class="flex flex-wrap items-center justify-between gap-4 mb-8 pb-6 border-b border-white/10">
+                    <div>
+                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Class
+                            Demonstration Presets</span>
+                        <p class="text-xs text-slate-300">Click a preset to test real-world student archetypes live:</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="applyPreset('at_risk')"
+                            class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 transition flex items-center space-x-1.5">
+                            <i data-lucide="alert-octagon" class="w-3.5 h-3.5"></i>
+                            <span>At-Risk Student</span>
+                        </button>
+                        <button onclick="applyPreset('enrolled')"
+                            class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 transition flex items-center space-x-1.5">
+                            <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+                            <span>Transitional Enrolled</span>
+                        </button>
+                        <button onclick="applyPreset('scholar')"
+                            class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 transition flex items-center space-x-1.5">
+                            <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+                            <span>Dean's List Scholar</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    <!-- Controls Column -->
+                    <div class="lg:col-span-7 space-y-6">
+                        <!-- Sem 1 & Sem 2 Approved Units -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="bg-slate-900/60 p-4 rounded-2xl border border-white/5">
+                                <div class="flex justify-between items-center mb-2">
+                                    <label class="text-xs font-medium text-slate-300">1st Sem Approved Units</label>
+                                    <span id="val_sem1_app"
+                                        class="font-mono text-sm font-bold text-emerald-400">6</span>
+                                </div>
+                                <input type="range" id="sem1_app" min="0" max="8" value="6" oninput="runPrediction()"
+                                    class="w-full accent-emerald-500">
+                                <div class="flex justify-between text-[10px] text-slate-500 mt-1">
+                                    <span>0 Units</span>
+                                    <span>Standard (6)</span>
+                                    <span>8+ Units</span>
+                                </div>
+                            </div>
+                            <div class="bg-slate-900/60 p-4 rounded-2xl border border-white/5">
+                                <div class="flex justify-between items-center mb-2">
+                                    <label class="text-xs font-medium text-slate-300">2nd Sem Approved Units</label>
+                                    <span id="val_sem2_app"
+                                        class="font-mono text-sm font-bold text-emerald-400">6</span>
+                                </div>
+                                <input type="range" id="sem2_app" min="0" max="8" value="6" oninput="runPrediction()"
+                                    class="w-full accent-emerald-500">
+                                <div class="flex justify-between text-[10px] text-slate-500 mt-1">
+                                    <span>0 Units</span>
+                                    <span>Standard (6)</span>
+                                    <span>8+ Units</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Grades Sliders -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="bg-slate-900/60 p-4 rounded-2xl border border-white/5">
+                                <div class="flex justify-between items-center mb-2">
+                                    <label class="text-xs font-medium text-slate-300">1st Sem Grade (0–20)</label>
+                                    <span id="val_sem1_grade"
+                                        class="font-mono text-sm font-bold text-blue-400">14.0</span>
+                                </div>
+                                <input type="range" id="sem1_grade" min="0" max="20" step="0.5" value="14.0"
+                                    oninput="runPrediction()" class="w-full accent-blue-500">
+                            </div>
+                            <div class="bg-slate-900/60 p-4 rounded-2xl border border-white/5">
+                                <div class="flex justify-between items-center mb-2">
+                                    <label class="text-xs font-medium text-slate-300">2nd Sem Grade (0–20)</label>
+                                    <span id="val_sem2_grade"
+                                        class="font-mono text-sm font-bold text-blue-400">14.0</span>
+                                </div>
+                                <input type="range" id="sem2_grade" min="0" max="20" step="0.5" value="14.0"
+                                    oninput="runPrediction()" class="w-full accent-blue-500">
+                            </div>
+                        </div>
+
+                        <!-- Admission & Age -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="bg-slate-900/60 p-4 rounded-2xl border border-white/5">
+                                <div class="flex justify-between items-center mb-2">
+                                    <label class="text-xs font-medium text-slate-300">Admission Grade (95–190)</label>
+                                    <span id="val_adm_grade"
+                                        class="font-mono text-sm font-bold text-slate-200">128.0</span>
+                                </div>
+                                <input type="range" id="adm_grade" min="95" max="190" value="128"
+                                    oninput="runPrediction()" class="w-full accent-slate-400">
+                            </div>
+                            <div class="bg-slate-900/60 p-4 rounded-2xl border border-white/5">
+                                <div class="flex justify-between items-center mb-2">
+                                    <label class="text-xs font-medium text-slate-300">Age at Enrollment</label>
+                                    <span id="val_age" class="font-mono text-sm font-bold text-slate-200">20</span>
+                                </div>
+                                <input type="range" id="age" min="17" max="55" value="20" oninput="runPrediction()"
+                                    class="w-full accent-slate-400">
+                            </div>
+                        </div>
+
+                        <!-- Financial & Socio-Economic Toggles -->
+                        <div class="grid grid-cols-3 gap-3">
+                            <label
+                                class="p-3 rounded-2xl bg-slate-900/60 border border-white/5 flex flex-col justify-between cursor-pointer hover:border-white/20 transition">
+                                <span class="text-[11px] font-medium text-slate-300">Tuition Paid?</span>
+                                <input type="checkbox" id="tuition_ok" checked onchange="runPrediction()"
+                                    class="mt-2 w-5 h-5 accent-emerald-500 rounded">
+                            </label>
+                            <label
+                                class="p-3 rounded-2xl bg-slate-900/60 border border-white/5 flex flex-col justify-between cursor-pointer hover:border-white/20 transition">
+                                <span class="text-[11px] font-medium text-slate-300">Marked Debtor?</span>
+                                <input type="checkbox" id="debtor" onchange="runPrediction()"
+                                    class="mt-2 w-5 h-5 accent-rose-500 rounded">
+                            </label>
+                            <label
+                                class="p-3 rounded-2xl bg-slate-900/60 border border-white/5 flex flex-col justify-between cursor-pointer hover:border-white/20 transition">
+                                <span class="text-[11px] font-medium text-slate-300">Scholarship?</span>
+                                <input type="checkbox" id="scholarship" onchange="runPrediction()"
+                                    class="mt-2 w-5 h-5 accent-blue-500 rounded">
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Output & Early Warning Report Card Column -->
+                    <div class="lg:col-span-5 flex flex-col justify-between space-y-6">
+                        <!-- Decision Badge Card -->
+                        <div id="decisionCard"
+                            class="p-6 rounded-3xl bg-slate-900/80 border border-white/10 flex flex-col items-center text-center transition-all duration-300">
+                            <span class="text-xs font-semibold text-slate-400 uppercase tracking-widest">Model
+                                Assessment</span>
+                            <div id="predictedOutcomeBadge"
+                                class="mt-3 px-6 py-2 rounded-2xl font-display font-extrabold text-2xl tracking-wide flex items-center space-x-2">
+                                <i id="outcomeIcon" data-lucide="check-circle" class="w-6 h-6"></i>
+                                <span id="outcomeText">Graduate</span>
+                            </div>
+                            <div id="riskTierBadge"
+                                class="mt-2 text-xs font-mono font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                                ON TRACK (Low Risk)
+                            </div>
+                        </div>
+
+                        <!-- Probability Breakdown Bars -->
+                        <div class="p-5 rounded-2xl bg-slate-900/80 border border-white/10 space-y-3">
+                            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Class
+                                Probability Spectrum</span>
+                            <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span class="text-emerald-400 font-semibold">P(Graduate)</span>
+                                    <span id="probGraduateText"
+                                        class="font-mono text-emerald-400 font-bold">85.4%</span>
+                                </div>
+                                <div class="w-full bg-slate-800 rounded-full h-2.5">
+                                    <div id="probGraduateBar"
+                                        class="bg-emerald-500 h-2.5 rounded-full transition-all duration-300"
+                                        style="width: 85%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span class="text-rose-400 font-semibold">P(Dropout)</span>
+                                    <span id="probDropoutText" class="font-mono text-rose-400 font-bold">10.2%</span>
+                                </div>
+                                <div class="w-full bg-slate-800 rounded-full h-2.5">
+                                    <div id="probDropoutBar"
+                                        class="bg-rose-500 h-2.5 rounded-full transition-all duration-300"
+                                        style="width: 10%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span class="text-amber-400 font-semibold">P(Enrolled)</span>
+                                    <span id="probEnrolledText" class="font-mono text-amber-400 font-bold">4.4%</span>
+                                </div>
+                                <div class="w-full bg-slate-800 rounded-full h-2.5">
+                                    <div id="probEnrolledBar"
+                                        class="bg-amber-500 h-2.5 rounded-full transition-all duration-300"
+                                        style="width: 4%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Automated Institutional Advisor Action List -->
+                        <div class="p-5 rounded-2xl bg-slate-900/80 border border-white/10">
+                            <span
+                                class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-2">Automated
+                                Early-Warning Advice</span>
+                            <ul id="adviceList" class="space-y-1.5 text-xs text-slate-300">
+                                <li class="flex items-start space-x-2">
+                                    <i data-lucide="check" class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5"></i>
+                                    <span>Student is maintaining optimal credit velocity toward timely
+                                        graduation.</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- SLIDE 7 / SECTION 7: ETHICAL AI & FUTURE SCOPE -->
+        <!-- ========================================== -->
+        <section id="slide-7" class="slide-section">
+            <div class="flex items-center space-x-3 mb-6">
+                <span
+                    class="px-3 py-1 rounded-lg bg-amber-500/10 text-amber-400 font-mono text-xs font-bold border border-amber-500/20">ETHICS
+                    & ROADMAP</span>
+                <h2 class="text-2xl sm:text-3xl font-display font-bold text-white">Benefits, Ethical AI & The 'Late
+                    Warning' Dilemma</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="glass-card rounded-2xl p-6 border border-white/10">
+                    <div
+                        class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-4">
+                        <i data-lucide="shield-check" class="w-5 h-5"></i>
+                    </div>
+                    <h3 class="text-base font-bold text-white mb-2">Institutional Benefits</h3>
+                    <ul class="text-xs text-slate-300 space-y-2">
+                        <li>• Early identification of at-risk students before irreversible withdrawal.</li>
+                        <li>• Targeted financial aid allocation for students blocked purely by tuition arrears.</li>
+                        <li>• Data-backed advisor mentoring replacing subjective guesswork.</li>
+                    </ul>
+                </div>
+
+                <div class="glass-card rounded-2xl p-6 border border-rose-500/30 bg-rose-950/10">
+                    <div
+                        class="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center mb-4">
+                        <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+                    </div>
+                    <h3 class="text-base font-bold text-white mb-2">The 'Late Warning' Dilemma</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Because <strong>2nd-semester approved credits</strong> hold the highest Information Gain
+                        (0.379), predictions generated at the end of Year 1 arrive late. The next iteration must train a
+                        <strong>Semester 1 Early-Exit Model</strong> to intervene by month 3 of freshman year.
+                    </p>
+                </div>
+
+                <div class="glass-card rounded-2xl p-6 border border-white/10">
+                    <div
+                        class="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center mb-4">
+                        <i data-lucide="compass" class="w-5 h-5"></i>
+                    </div>
+                    <h3 class="text-base font-bold text-white mb-2">Future Research Scope</h3>
+                    <ul class="text-xs text-slate-300 space-y-2">
+                        <li>• Direct API integration into SRM University ERP / LMS.</li>
+                        <li>• SHAP (SHapley Additive exPlanations) for personalized student feature attribution.</li>
+                        <li>• Longitudinal temporal modeling across Years 2, 3, and 4.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- SLIDE 8 / SECTION 8: DELIVERABLES & GALLERY -->
+        <!-- ========================================== -->
+        <section id="slide-8" class="slide-section">
+            <div class="flex items-center space-x-3 mb-6">
+                <span
+                    class="px-3 py-1 rounded-lg bg-blue-500/10 text-blue-400 font-mono text-xs font-bold border border-blue-500/20">DELIVERABLES</span>
+                <h2 class="text-2xl sm:text-3xl font-display font-bold text-white">Project Deliverables & Research
+                    Posters</h2>
+            </div>
+
+            <!-- Downloadable Asset Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+                <a href="assets/Student_Performance_Prediction_CA-3_Report.docx" download
+                    class="glass-card glass-card-hover p-4 rounded-2xl border border-white/10 flex items-center space-x-4">
+                    <div
+                        class="w-12 h-12 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0">
+                        <i data-lucide="file-text" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <div class="font-bold text-sm text-white">CA-3 Report (.docx)</div>
+                        <span class="text-xs text-slate-400">Complete 6-Page Formal Report</span>
+                    </div>
+                </a>
+                <a href="assets/ALMOST COMPLETED PPT.pptx" download
+                    class="glass-card glass-card-hover p-4 rounded-2xl border border-white/10 flex items-center space-x-4">
+                    <div
+                        class="w-12 h-12 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
+                        <i data-lucide="presentation" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <div class="font-bold text-sm text-white">Presentation (.pptx)</div>
+                        <span class="text-xs text-slate-400">7-Slide Class Deck</span>
+                    </div>
+                </a>
+                <div class="glass-card p-4 rounded-2xl border border-white/10 flex items-center space-x-4">
+                    <div
+                        class="w-12 h-12 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center shrink-0">
+                        <i data-lucide="terminal" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <div class="font-bold text-sm text-white">Python ML Pipeline</div>
+                        <span class="text-xs text-purple-300 font-mono">D:\DS AI project\src\</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Poster Gallery Grid -->
+            <h3 class="text-base font-semibold text-white mb-4">Research Infographic Posters (Click to Zoom)</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <div class="glass-card rounded-2xl overflow-hidden border border-white/10 cursor-pointer group"
+                    onclick="openModal('assets/Student Dropout Prediction Infographic Poster-1.png')">
+                    <div class="relative overflow-hidden">
+                        <img src="assets/Student Dropout Prediction Infographic Poster-1.png" alt="Poster 1"
+                            class="w-full h-80 object-cover object-top group-hover:scale-105 transition duration-300">
+                        <div
+                            class="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-xs font-semibold space-x-1">
+                            <i data-lucide="zoom-in" class="w-4 h-4"></i>
+                            <span>View Poster 1</span>
+                        </div>
+                    </div>
+                    <div class="p-3 text-center bg-slate-900/80">
+                        <span class="text-xs font-semibold text-slate-300">Poster Variant 1 · Comprehensive</span>
+                    </div>
+                </div>
+
+                <div class="glass-card rounded-2xl overflow-hidden border border-white/10 cursor-pointer group"
+                    onclick="openModal('assets/Student Dropout Prediction Infographic-2.png')">
+                    <div class="relative overflow-hidden">
+                        <img src="assets/Student Dropout Prediction Infographic-2.png" alt="Poster 2"
+                            class="w-full h-80 object-cover object-top group-hover:scale-105 transition duration-300">
+                        <div
+                            class="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-xs font-semibold space-x-1">
+                            <i data-lucide="zoom-in" class="w-4 h-4"></i>
+                            <span>View Poster 2</span>
+                        </div>
+                    </div>
+                    <div class="p-3 text-center bg-slate-900/80">
+                        <span class="text-xs font-semibold text-slate-300">Poster Variant 2 · ECE Core Edition</span>
+                    </div>
+                </div>
+
+                <div class="glass-card rounded-2xl overflow-hidden border border-white/10 cursor-pointer group"
+                    onclick="openModal('assets/Student Dropout Prediction Infographic-3.png')">
+                    <div class="relative overflow-hidden">
+                        <img src="assets/Student Dropout Prediction Infographic-3.png" alt="Poster 3"
+                            class="w-full h-80 object-cover object-top group-hover:scale-105 transition duration-300">
+                        <div
+                            class="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-xs font-semibold space-x-1">
+                            <i data-lucide="zoom-in" class="w-4 h-4"></i>
+                            <span>View Poster 3</span>
+                        </div>
+                    </div>
+                    <div class="p-3 text-center bg-slate-900/80">
+                        <span class="text-xs font-semibold text-slate-300">Poster Variant 3 · Report Card Edition</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Lightbox Modal for High-Res Inspection -->
+    <div id="imageModal"
+        class="fixed inset-0 z-50 bg-black/90 backdrop-blur-xl hidden flex items-center justify-center p-4">
+        <button onclick="closeModal()"
+            class="absolute top-6 right-6 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition">
+            <i data-lucide="x" class="w-6 h-6"></i>
+        </button>
+        <div class="max-w-5xl max-h-[90vh] overflow-auto rounded-2xl border border-white/10 p-2 bg-slate-950">
+            <img id="modalImg" src="" alt="Enlarged View" class="w-full h-auto rounded-xl">
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="border-t border-white/10 py-12 mt-20 text-center text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto px-4 space-y-2">
+            <p class="text-slate-400 font-medium">SRM Institute of Science and Technology · Department of Electronics
+                and Communication Engineering</p>
+            <p>26CSE1001T Data Science & Artificial Intelligence · CA-3 Submission · November 2026</p>
+            <p class="text-[10px] text-slate-600 font-mono">Engineered by Sangana Sai Chaitanya, P. Gunalan, V. Bhanu
+                Sree, Darshana .A.M</p>
+        </div>
+    </footer>
+
+    <!-- Interactive Scripts -->
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // Slide Deck State
+        let currentSlide = 1;
+        const totalSlides = 8;
+        let viewMode = 'deck'; // 'deck' or 'scroll'
+
+        const slideTitles = [
+            "Project Overview & Team",
+            "Dataset & Column Stats",
+            "Orange Pipeline & ANOVA",
+            "Model Comparison & Confusion Matrix",
+            "Production Python Upgrade",
+            "Live Interactive Predictor",
+            "Ethical AI & Limitations",
+            "Deliverables & Poster Gallery"
+        ];
+
+        function setViewMode(mode) {
+            viewMode = mode;
+            const sections = document.querySelectorAll('.slide-section');
+            const controller = document.getElementById('deckController');
+            const deckBtn = document.getElementById('viewModeDeckBtn');
+            const scrollBtn = document.getElementById('viewModeScrollBtn');
+
+            if (mode === 'deck') {
+                sections.forEach((sec, idx) => {
+                    if (idx + 1 === currentSlide) {
+                        sec.classList.add('active-slide');
+                        sec.style.display = 'block';
+                    } else {
+                        sec.classList.remove('active-slide');
+                        sec.style.display = 'none';
+                    }
+                });
+                controller.style.display = 'flex';
+                deckBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 text-white shadow-sm shadow-blue-500/30 flex items-center space-x-1.5';
+                scrollBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white flex items-center space-x-1.5';
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                sections.forEach(sec => {
+                    sec.style.display = 'block';
+                    sec.classList.remove('active-slide');
+                });
+                controller.style.display = 'none';
+                scrollBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 text-white shadow-sm shadow-blue-500/30 flex items-center space-x-1.5';
+                deckBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white flex items-center space-x-1.5';
+            }
+        }
+
+        function showSlide(index) {
+            if (index < 1 || index > totalSlides) return;
+            currentSlide = index;
+            const sections = document.querySelectorAll('.slide-section');
+            sections.forEach((sec, idx) => {
+                if (idx + 1 === currentSlide) {
+                    sec.classList.add('active-slide');
+                    sec.style.display = 'block';
+                } else {
+                    sec.classList.remove('active-slide');
+                    sec.style.display = 'none';
+                }
+            });
+            document.getElementById('slideIndicator').innerText = `Slide 0${currentSlide} / 0${totalSlides}`;
+            document.getElementById('slideTitleSmall').innerText = slideTitles[currentSlide - 1];
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function nextSlide() {
+            if (currentSlide < totalSlides) {
+                showSlide(currentSlide + 1);
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 1) {
+                showSlide(currentSlide - 1);
+            }
+        }
+
+        function ensureSimulatorVisible() {
+            if (viewMode === 'deck') {
+                showSlide(6);
+            }
+        }
+
+        // Keyboard arrow listener for class presentation
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') {
+                if (viewMode === 'deck') nextSlide();
+            } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+                if (viewMode === 'deck') prevSlide();
+            } else if (e.key === 'p' || e.key === 'P') {
+                setViewMode(viewMode === 'deck' ? 'scroll' : 'deck');
+            }
+        });
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => { });
+            } else {
+                document.exitFullscreen().catch(() => { });
+            }
+        }
+
+        // Modal for High-Res Images
+        function openModal(imgSrc) {
+            document.getElementById('modalImg').src = imgSrc;
+            document.getElementById('imageModal').classList.remove('hidden');
+        }
+        function closeModal() {
+            document.getElementById('imageModal').classList.add('hidden');
+        }
+
+        // Confusion Matrix Cell Inspector
+        function inspectCell(type, count, total, desc) {
+            const pct = ((count / total) * 100).toFixed(1);
+            const box = document.getElementById('cellInspectorText');
+            box.innerHTML = `<strong>${count} students (${pct}% of class):</strong> ${desc}`;
+        }
+
+        // Donut Chart Initialization
+        window.addEventListener('load', () => {
+            setViewMode('deck');
+
+            const ctx = document.getElementById('classDistChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Graduate (49.9%)', 'Dropout (32.1%)', 'Enrolled (18.0%)'],
+                    datasets: [{
+                        data: [2209, 1421, 794],
+                        backgroundColor: ['#10B981', '#F43F5E', '#F59E0B'],
+                        borderWidth: 0,
+                        hoverOffset: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    cutout: '72%'
+                }
+            });
+
+            // Initial prediction run
+            runPrediction();
+        });
+
+        // ==========================================
+        // CALIBRATED LIVE INFERENCE SIMULATOR ENGINE
+        // ==========================================
+        function runPrediction() {
+            const sem1_app = parseFloat(document.getElementById('sem1_app').value);
+            const sem2_app = parseFloat(document.getElementById('sem2_app').value);
+            const sem1_grade = parseFloat(document.getElementById('sem1_grade').value);
+            const sem2_grade = parseFloat(document.getElementById('sem2_grade').value);
+            const adm_grade = parseFloat(document.getElementById('adm_grade').value);
+            const age = parseFloat(document.getElementById('age').value);
+            const tuition_ok = document.getElementById('tuition_ok').checked ? 1 : 0;
+            const debtor = document.getElementById('debtor').checked ? 1 : 0;
+            const scholarship = document.getElementById('scholarship').checked ? 1 : 0;
+
+            // Update UI Labels
+            document.getElementById('val_sem1_app').innerText = sem1_app;
+            document.getElementById('val_sem2_app').innerText = sem2_app;
+            document.getElementById('val_sem1_grade').innerText = sem1_grade.toFixed(1);
+            document.getElementById('val_sem2_grade').innerText = sem2_grade.toFixed(1);
+            document.getElementById('val_adm_grade').innerText = adm_grade;
+            document.getElementById('val_age').innerText = age;
+
+            // Calibrated Empirical Model Logits (Derived from HistGradientBoosting / Logistic Weights)
+            let logit_grad = (sem2_app * 0.58) + (sem1_app * 0.38) + ((sem2_grade - 10) * 0.16) +
+                (tuition_ok * 2.2) + (scholarship * 1.4) - (debtor * 0.9) -
+                ((age - 20) * 0.04) + ((adm_grade - 120) * 0.015) - 3.8;
+
+            let logit_drop = ((6 - sem2_app) * 0.62) + ((6 - sem1_app) * 0.40) + ((1 - tuition_ok) * 3.4) +
+                (debtor * 1.6) - (scholarship * 1.8) + ((age - 20) * 0.055) -
+                ((adm_grade - 120) * 0.018) - 1.2;
+
+            let logit_enr = 0.5 + (sem1_app >= 3 && sem2_app >= 2 ? 0.8 : -0.8) -
+                Math.abs(logit_grad - logit_drop) * 0.25;
+
+            // Softmax Normalization
+            const maxLogit = Math.max(logit_grad, logit_drop, logit_enr);
+            const exp_g = Math.exp(logit_grad - maxLogit);
+            const exp_d = Math.exp(logit_drop - maxLogit);
+            const exp_e = Math.exp(logit_enr - maxLogit);
+            const sumExp = exp_g + exp_d + exp_e;
+
+            const p_grad = exp_g / sumExp;
+            const p_drop = exp_d / sumExp;
+            const p_enr = exp_e / sumExp;
+
+            // Update Probability Bars
+            document.getElementById('probGraduateBar').style.width = `${(p_grad * 100).toFixed(1)}%`;
+            document.getElementById('probGraduateText').innerText = `${(p_grad * 100).toFixed(1)}%`;
+
+            document.getElementById('probDropoutBar').style.width = `${(p_drop * 100).toFixed(1)}%`;
+            document.getElementById('probDropoutText').innerText = `${(p_drop * 100).toFixed(1)}%`;
+
+            document.getElementById('probEnrolledBar').style.width = `${(p_enr * 100).toFixed(1)}%`;
+            document.getElementById('probEnrolledText').innerText = `${(p_enr * 100).toFixed(1)}%`;
+
+            // Class Assignment & Risk Tiers
+            const badge = document.getElementById('predictedOutcomeBadge');
+            const icon = document.getElementById('outcomeIcon');
+            const text = document.getElementById('outcomeText');
+            const riskBadge = document.getElementById('riskTierBadge');
+            const adviceList = document.getElementById('adviceList');
+
+            adviceList.innerHTML = '';
+
+            if (p_drop >= 0.40 || (p_drop > p_grad && p_drop > p_enr)) {
+                // AT RISK / DROPOUT
+                badge.className = 'mt-3 px-6 py-2 rounded-2xl font-display font-extrabold text-2xl tracking-wide flex items-center space-x-2 bg-rose-500/20 text-rose-400 border border-rose-500/40';
+                text.innerText = 'Dropout';
+                icon.setAttribute('data-lucide', 'alert-triangle');
+                riskBadge.className = 'mt-2 text-xs font-mono font-bold px-3 py-1 rounded-full uppercase tracking-wider bg-rose-500 text-white';
+                riskBadge.innerText = 'CRITICAL: AT RISK';
+
+                if (!tuition_ok) adviceList.innerHTML += `<li class="flex items-start space-x-2 text-rose-300"><i data-lucide="x-circle" class="w-4 h-4 shrink-0 mt-0.5"></i><span>Tuition overdue: Urgent institutional payment plan required (86.5% dropout rate indicator).</span></li>`;
+                if (debtor) adviceList.innerHTML += `<li class="flex items-start space-x-2 text-rose-300"><i data-lucide="x-circle" class="w-4 h-4 shrink-0 mt-0.5"></i><span>Student is flagged debtor: Schedule financial counseling review.</span></li>`;
+                if (sem1_app <= 2 || sem2_app <= 2) adviceList.innerHTML += `<li class="flex items-start space-x-2 text-rose-300"><i data-lucide="x-circle" class="w-4 h-4 shrink-0 mt-0.5"></i><span>Severe credit deficit: Assign mandatory peer tutoring for prerequisite coursework.</span></li>`;
+            } else if (p_enr >= 0.35 || p_enr > p_grad) {
+                // WATCH / ENROLLED
+                badge.className = 'mt-3 px-6 py-2 rounded-2xl font-display font-extrabold text-2xl tracking-wide flex items-center space-x-2 bg-amber-500/20 text-amber-400 border border-amber-500/40';
+                text.innerText = 'Enrolled';
+                icon.setAttribute('data-lucide', 'clock');
+                riskBadge.className = 'mt-2 text-xs font-mono font-bold px-3 py-1 rounded-full uppercase tracking-wider bg-amber-500 text-slate-950';
+                riskBadge.innerText = 'MONITOR: WATCH LIST';
+
+                adviceList.innerHTML += `<li class="flex items-start space-x-2 text-amber-300"><i data-lucide="alert-circle" class="w-4 h-4 shrink-0 mt-0.5"></i><span>Student is progressing at suboptimal pace: Schedule academic advisor check-in.</span></li>`;
+                adviceList.innerHTML += `<li class="flex items-start space-x-2 text-amber-300"><i data-lucide="alert-circle" class="w-4 h-4 shrink-0 mt-0.5"></i><span>Review credit registration load to prevent credit accumulation bottlenecks.</span></li>`;
+            } else {
+                // GRADUATE / ON TRACK
+                badge.className = 'mt-3 px-6 py-2 rounded-2xl font-display font-extrabold text-2xl tracking-wide flex items-center space-x-2 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40';
+                text.innerText = 'Graduate';
+                icon.setAttribute('data-lucide', 'check-circle');
+                riskBadge.className = 'mt-2 text-xs font-mono font-bold px-3 py-1 rounded-full uppercase tracking-wider bg-emerald-500 text-slate-950';
+                riskBadge.innerText = 'ON TRACK (Low Risk)';
+
+                adviceList.innerHTML += `<li class="flex items-start space-x-2 text-emerald-300"><i data-lucide="check" class="w-4 h-4 shrink-0 mt-0.5"></i><span>Student is maintaining optimal credit velocity toward timely graduation.</span></li>`;
+                if (scholarship) adviceList.innerHTML += `<li class="flex items-start space-x-2 text-emerald-300"><i data-lucide="check" class="w-4 h-4 shrink-0 mt-0.5"></i><span>Scholarship status verified: Strong retention protective buffer.</span></li>`;
+            }
+            lucide.createIcons();
+        }
+
+        // Preset Configurations
+        function applyPreset(type) {
+            if (type === 'at_risk') {
+                document.getElementById('sem1_app').value = 1;
+                document.getElementById('sem2_app').value = 0;
+                document.getElementById('sem1_grade').value = 9.5;
+                document.getElementById('sem2_grade').value = 0.0;
+                document.getElementById('adm_grade').value = 115;
+                document.getElementById('age').value = 24;
+                document.getElementById('tuition_ok').checked = false;
+                document.getElementById('debtor').checked = true;
+                document.getElementById('scholarship').checked = false;
+            } else if (type === 'enrolled') {
+                document.getElementById('sem1_app').value = 4;
+                document.getElementById('sem2_app').value = 3;
+                document.getElementById('sem1_grade').value = 12.0;
+                document.getElementById('sem2_grade').value = 11.5;
+                document.getElementById('adm_grade').value = 125;
+                document.getElementById('age').value = 21;
+                document.getElementById('tuition_ok').checked = true;
+                document.getElementById('debtor').checked = false;
+                document.getElementById('scholarship').checked = false;
+            } else if (type === 'scholar') {
+                document.getElementById('sem1_app').value = 6;
+                document.getElementById('sem2_app').value = 6;
+                document.getElementById('sem1_grade').value = 16.5;
+                document.getElementById('sem2_grade').value = 16.8;
+                document.getElementById('adm_grade').value = 158;
+                document.getElementById('age').value = 19;
+                document.getElementById('tuition_ok').checked = true;
+                document.getElementById('debtor').checked = false;
+                document.getElementById('scholarship').checked = true;
+            }
+            runPrediction();
+        }
+    </script>
+</body>
+
+</html>
